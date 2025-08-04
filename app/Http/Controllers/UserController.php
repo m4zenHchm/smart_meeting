@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -30,11 +31,22 @@ class UserController extends Controller
             'IsActive' => 'boolean',
             'ProfileImageUrl' => 'nullable|string',
             'LastSeenDate' => 'nullable|date',
-            'CreatedDate' => 'nullable|date',
-            'UpdatedDate' => 'nullable|date'
         ]);
 
-        $user = User::create($validated);
+        $user = new User();
+        $user->FirstName = $validated['FirstName'];
+        $user->LastName = $validated['LastName'];
+        $user->Email = $validated['Email'];
+        $user->PasswordHash = Hash::make($validated['PasswordHash']);
+        $user->Role = $validated['Role'] ?? null;
+        $user->Department = $validated['Department'] ?? null;
+        $user->IsActive = $validated['IsActive'] ?? true;
+        $user->ProfileImageUrl = $validated['ProfileImageUrl'] ?? null;
+        $user->LastSeenDate = $validated['LastSeenDate'] ?? now();
+        $user->CreatedDate = now();
+        $user->UpdatedDate = now();
+        $user->save();
+
         return response()->json([
             'message' => 'User created successfully',
             'user' => $user
@@ -79,12 +91,13 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+
+public function destroy(string $id)
 {
     $user = User::find($id);
     if (!$user) return response()->json(['message' => 'User not found'], 404);
 
-    $user->forceDelete();  // ← this guarantees permanent deletion
-    return response()->json(['message' => 'User deleted']);
+    $user->delete();
+    return response()->json(['message' => 'User deleted successfully']);
 }
 }
